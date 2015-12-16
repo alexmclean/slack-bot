@@ -17,19 +17,6 @@ This bot demonstrates many of the core features of Botkit:
     -> http://my.slack.com/services/new/bot
   Run your bot from the command line:
     token=<MY TOKEN> node bot.js
-# USE THE BOT:
-  Find your bot inside Slack to send it a direct message.
-  Say: "Hello"
-  The bot will reply "Hello!"
-  Say: "who are you?"
-  The bot will tell you its name, where it running, and for how long.
-  Say: "Call me <nickname>"
-  Tell the bot your nickname. Now you are friends.
-  Say: "who am I?"
-  The bot will tell you your nickname, if it knows one for you.
-  Say: "shutdown"
-  The bot will ask if you are sure, and then shut itself down.
-  Make sure to invite your bot into other channels using /invite @<my bot>!
 # EXTEND THE BOT:
   Botkit is has many features for building cool and useful bots!
   Read all about it here:
@@ -39,6 +26,9 @@ This bot demonstrates many of the core features of Botkit:
 
 var Botkit = require('Botkit');
 var os = require('os');
+var request = require('request');
+
+var repo = "mirthfulchuksha/dtbs";
 
 var controller = Botkit.slackbot({
   debug: false,
@@ -75,6 +65,24 @@ controller.hears(['hello','hi'],'direct_message,direct_mention,mention',function
 
 controller.hears(['who do you work for'], 'direct_message,direct_mention,mention', function (bot, message) {
   bot.reply(message, "I work for DTBS otherwise known as 'Down To Be Sexy'!");
+});
+
+controller.hears(['project', 'status'], 'direct_message,direct_mention,mention', function (bot, message) {
+  var options = {
+    url : "https://api.github.com/repos/mirthfulchuksha/dtbs/stats/commit_activity",
+    headers : {
+      'User-Agent': 'alexmclean'
+    }
+  }
+  request(options, function (error, response, body) {
+    console.log("got response");
+    if (!error && response.statusCode == 200) {
+      var parsedBody = JSON.parse(body);
+      console.log(parsedBody[parsedBody.length -1]); // last week
+      var lastWeekActivity = parsedBody[parsedBody.length -1];
+      bot.reply(message, "Found some stats for ya!  You have " + lastWeekActivity.total + " commits this week from " + repo + "!");
+    }
+  });
 });
 
 controller.hears(['call me (.*)'],'direct_message,direct_mention,mention',function(bot,message) {
