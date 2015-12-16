@@ -75,10 +75,8 @@ controller.hears(['project', 'status'], 'direct_message,direct_mention,mention',
     }
   }
   request(options, function (error, response, body) {
-    console.log("got response");
     if (!error && response.statusCode == 200) {
       var parsedBody = JSON.parse(body);
-      console.log(parsedBody[parsedBody.length -1]); // last week
       var lastWeekActivity = parsedBody[parsedBody.length -1];
       bot.reply(message, "Found some stats for ya!  You have " + lastWeekActivity.total + " commits this week from " + repo + "!");
     }

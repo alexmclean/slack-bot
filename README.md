@@ -1,2 +1,2 @@
 # slack-bot
-experiments with bots on slack API
+A bot created for my HR team to monitor our git workflow
