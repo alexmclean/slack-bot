@@ -76,7 +76,7 @@ controller.hears(['weather', 'outside'], 'direct_message,direct_mention,mention'
     if (!error && response.statusCode == 200) {
       var data = JSON.parse(body);
       var farenheit = Math.round((data.main.temp * (9/5.0)) - 459.67);
-      bot.reply(message, "The weather in " + data.name + " is " + data.weather[0].main + " with a temperature of " + farenheit + " degrees.");
+      bot.reply(message, "The weather in " + data.name + " is " + data.weather[0].main.toLowerCase() + " with a temperature of " + farenheit + " degrees.");
     }
   });
 });
@@ -94,7 +94,50 @@ controller.hears(['project', 'status'], 'direct_message,direct_mention,mention',
     if (!error && response.statusCode == 200) {
       var parsedBody = JSON.parse(body);
       var lastWeekActivity = parsedBody[parsedBody.length -1];
-      bot.reply(message, "Found some stats for ya!  You have " + lastWeekActivity.total + " commits this week from " + repo + "!");
+      bot.reply(message, ":thumbsup: Found some stats!  You have " + lastWeekActivity.total + " commits this week from " + repo + "!");
+    }
+  });
+});
+
+controller.hears(['pull request', 'pull requests', 'pulls'], 'direct_message,direct_mention,mention', function (bot, message) {
+  var options = {
+    url : "https://api.github.com/repos/mirthfulchuksha/dtbs/pulls",
+    headers : {
+      'User-Agent': 'alexmclean'
+    }
+  };
+
+  request(options, function (error, response, body) {
+    console.log(body);
+    if (!error && response.statusCode == 200) {
+      var parsedBody = JSON.parse(body);
+      
+      bot.reply(message, ":thumbsup: Looks like you have " + parsedBody.length + " open pull requests from " + repo + "!");
+    }
+  });
+});
+
+controller.hears(['issues', 'waffle'], 'direct_message,direct_mention,mention', function (bot, message) {
+  var options = {
+    url : "https://api.github.com/repos/mirthfulchuksha/dtbs/issues",
+    headers : {
+      'User-Agent': 'alexmclean'
+    }
+  };
+
+  request(options, function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      var parsedBody = JSON.parse(body);
+      console.log(parsedBody);
+      var response = ":thumbsup: Looks like you have " + parsedBody.length + " open git issues from " + repo + "!";
+
+      response += '\n\nHere:\n';
+      for(var i = 0; i < parsedBody.length; i++){
+        var task = parsedBody[i]
+        response += task.title + " assigned to *" + task.user.login + '*\n';
+      }
+
+      bot.reply(message, response);
     }
   });
 });
@@ -126,6 +169,10 @@ controller.hears(['what is my name','who am i'],'direct_message,direct_mention,m
   })
 });
 
+controller.hears(['sexy'], 'direct_message,direct_mention,mention', function (bot, message) {
+  bot.reply(message, ":kissing_closed_eyes:");
+});
+
 
 controller.hears(['shutdown'],'direct_message,direct_mention,mention',function(bot,message) {
 
@@ -151,7 +198,7 @@ controller.hears(['shutdown'],'direct_message,direct_mention,mention',function(b
       }
     ])
   })
-})
+});
 
 
 controller.hears(['uptime','identify yourself','who are you','what is your name'],'direct_message,direct_mention,mention',function(bot,message) {
