@@ -29,6 +29,7 @@ var os = require('os');
 var request = require('request');
 
 var repo = "mirthfulchuksha/dtbs";
+var placeID = 5391997;
 
 var controller = Botkit.slackbot({
   debug: false,
@@ -67,13 +68,28 @@ controller.hears(['who do you work for'], 'direct_message,direct_mention,mention
   bot.reply(message, "I work for DTBS otherwise known as 'Down To Be Sexy'!");
 });
 
+controller.hears(['weather', 'outside'], 'direct_message,direct_mention,mention', function (bot, message) {
+  var id = placeID;
+  var url = 'http://api.openweathermap.org/data/2.5/weather?id=' + id + '&appid=8ebbea68955b3275135765ecaf17809c';
+
+  request({url: url}, function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      var data = JSON.parse(body);
+      var farenheit = Math.round((data.main.temp * (9/5.0)) - 459.67);
+      bot.reply(message, "The weather in " + data.name + " is " + data.weather[0].main + " with a temperature of " + farenheit + " degrees.");
+    }
+  });
+});
+
+//git project checking
 controller.hears(['project', 'status'], 'direct_message,direct_mention,mention', function (bot, message) {
   var options = {
     url : "https://api.github.com/repos/mirthfulchuksha/dtbs/stats/commit_activity",
     headers : {
       'User-Agent': 'alexmclean'
     }
-  }
+  };
+
   request(options, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       var parsedBody = JSON.parse(body);
