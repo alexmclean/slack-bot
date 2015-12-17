@@ -31,6 +31,11 @@ var request = require('request');
 var repo = "mirthfulchuksha/dtbs";
 var placeID = 5391997;
 
+//special character encodings
+//surround these with <> to tag users or groups
+var atSign = "@U024BE7LH";
+var hashtag = "#C024BE7LR";
+
 var controller = Botkit.slackbot({
   debug: false,
 });
@@ -65,7 +70,7 @@ controller.hears(['hello','hi'],'direct_message,direct_mention,mention',function
 });
 
 controller.hears(['who do you work for'], 'direct_message,direct_mention,mention', function (bot, message) {
-  bot.reply(message, "I work for DTBS otherwise known as 'Down To Be Sexy'!");
+  bot.reply(message, "I work for DTBS, better known as 'Down To Be Sexy'!");
 });
 
 controller.hears(['weather', 'outside'], 'direct_message,direct_mention,mention', function (bot, message) {
@@ -82,7 +87,7 @@ controller.hears(['weather', 'outside'], 'direct_message,direct_mention,mention'
 });
 
 //git project checking
-controller.hears(['project', 'status'], 'direct_message,direct_mention,mention', function (bot, message) {
+controller.hears(['project', 'activity'], 'direct_message,direct_mention,mention', function (bot, message) {
   var options = {
     url : "https://api.github.com/repos/mirthfulchuksha/dtbs/stats/commit_activity",
     headers : {
@@ -133,8 +138,14 @@ controller.hears(['issues', 'waffle'], 'direct_message,direct_mention,mention', 
 
       response += '\n\nHere:\n';
       for(var i = 0; i < parsedBody.length; i++){
-        var task = parsedBody[i]
-        response += task.title + " assigned to *" + task.user.login + '*\n';
+        var task = parsedBody[i];
+        var user = task.assignee;
+        if(user) {
+          user = user.login;
+        } else {
+          user = "Nobody";
+        }
+        response += task.title + " assigned to *" + user + '*\n';
       }
 
       bot.reply(message, response);
