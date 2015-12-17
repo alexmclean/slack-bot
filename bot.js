@@ -99,7 +99,42 @@ controller.hears(['project', 'activity'], 'direct_message,direct_mention,mention
     if (!error && response.statusCode == 200) {
       var parsedBody = JSON.parse(body);
       var lastWeekActivity = parsedBody[parsedBody.length -1];
-      bot.reply(message, ":thumbsup: Found some stats!  You have " + lastWeekActivity.total + " commits this week from " + repo + "!");
+      bot.reply(message, ":computer: You have " + lastWeekActivity.total + " commits this week from " + repo + "!");
+    }
+  });
+});
+
+controller.hears(['contributions'], 'direct_message,direct_mention,mention', function (bot, message) {
+  var options = {
+    url : "https://api.github.com/repos/mirthfulchuksha/dtbs/stats/contributors",
+    headers : {
+      'User-Agent': 'alexmclean'
+    }
+  };
+
+  request(options, function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      var parsedBody = JSON.parse(body);
+      
+      var people = [];
+      for(var i = 0; i < parsedBody.length; i++) {
+        var person = parsedBody[i];
+        var userObj = {name: person.author.login};
+        var totalContribs = 0;
+        //tally up additions and deletions from every week
+        for(var week = 0; week < person.weeks.length; week++) {
+          totalContribs += person.weeks[week].a - person.weeks[week].d;
+        }
+        //create list of objects containing the username and total contribs
+        userObj.total = totalContribs;
+        people.push(userObj);
+      }
+
+      var response = ":thumbsup:  Here is the contribution break down for " + repo + ":\n";
+      for(var person = 0; person < people.length; person++) {
+        response += people[person].name + ", " + people[person].total + " lines added\n";
+      }
+      bot.reply(message, response);
     }
   });
 });
@@ -113,7 +148,6 @@ controller.hears(['pull request', 'pull requests', 'pulls'], 'direct_message,dir
   };
 
   request(options, function (error, response, body) {
-    console.log(body);
     if (!error && response.statusCode == 200) {
       var parsedBody = JSON.parse(body);
       
@@ -133,10 +167,9 @@ controller.hears(['issues', 'waffle'], 'direct_message,direct_mention,mention', 
   request(options, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       var parsedBody = JSON.parse(body);
-      console.log(parsedBody);
       var response = ":thumbsup: Looks like you have " + parsedBody.length + " open git issues from " + repo + "!";
 
-      response += '\n\nHere:\n';
+      response += '\n\nHere:\n\n';
       for(var i = 0; i < parsedBody.length; i++){
         var task = parsedBody[i];
         var user = task.assignee;
@@ -145,7 +178,7 @@ controller.hears(['issues', 'waffle'], 'direct_message,direct_mention,mention', 
         } else {
           user = "Nobody";
         }
-        response += task.title + " assigned to *" + user + '*\n';
+        response += "#" + task.number + ":  " + task.title + " assigned to *" + user + '*\n';
       }
 
       bot.reply(message, response);
