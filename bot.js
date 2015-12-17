@@ -69,10 +69,7 @@ controller.hears(['hello','hi'],'direct_message,direct_mention,mention',function
   });
 });
 
-controller.hears(['who do you work for'], 'direct_message,direct_mention,mention', function (bot, message) {
-  bot.reply(message, "I work for DTBS, better known as 'Down To Be Sexy'!");
-});
-
+//WEATHER info
 controller.hears(['weather', 'outside'], 'direct_message,direct_mention,mention', function (bot, message) {
   var id = placeID;
   var url = 'http://api.openweathermap.org/data/2.5/weather?id=' + id + '&appid=8ebbea68955b3275135765ecaf17809c';
@@ -86,10 +83,24 @@ controller.hears(['weather', 'outside'], 'direct_message,direct_mention,mention'
   });
 });
 
-//git project checking
+/*
+  GIT statistics and informative responses
+*/
+//COMMIT ACTIVITY
 controller.hears(['project', 'activity'], 'direct_message,direct_mention,mention', function (bot, message) {
+  
+  var repository;
+  controller.storage.users.get(message.user,function(err,user) {
+    if (user && user.repository) {
+      repository = user.repository;
+    } else {
+      console.log("oops");
+      repository = repo;
+    }
+  });
+
   var options = {
-    url : "https://api.github.com/repos/mirthfulchuksha/dtbs/stats/commit_activity",
+    url : "https://api.github.com/repos/" + repository + "/stats/commit_activity",
     headers : {
       'User-Agent': 'alexmclean'
     }
@@ -99,14 +110,26 @@ controller.hears(['project', 'activity'], 'direct_message,direct_mention,mention
     if (!error && response.statusCode == 200) {
       var parsedBody = JSON.parse(body);
       var lastWeekActivity = parsedBody[parsedBody.length -1];
-      bot.reply(message, ":computer: You have " + lastWeekActivity.total + " commits this week from " + repo + "!");
+      bot.reply(message, ":computer: You have " + lastWeekActivity.total + " commits this week from " + repository + "!");
     }
   });
 });
 
+//CONTRIBUTIONS BREAKDOWN
 controller.hears(['contributions'], 'direct_message,direct_mention,mention', function (bot, message) {
+  
+  var repository;
+  controller.storage.users.get(message.user,function(err,user) {
+    if (user && user.repository) {
+      repository = user.repository;
+    } else {
+      console.log("oops");
+      repository = repo;
+    }
+  });
+
   var options = {
-    url : "https://api.github.com/repos/mirthfulchuksha/dtbs/stats/contributors",
+    url : "https://api.github.com/repos/" + repository + "/stats/contributors",
     headers : {
       'User-Agent': 'alexmclean'
     }
@@ -130,7 +153,7 @@ controller.hears(['contributions'], 'direct_message,direct_mention,mention', fun
         people.push(userObj);
       }
 
-      var response = ":thumbsup:  Here is the contribution break down for " + repo + ":\n";
+      var response = ":thumbsup:  Here is the contribution break down for " + repository + ":\n";
       for(var person = 0; person < people.length; person++) {
         response += people[person].name + ", " + people[person].total + " lines added\n";
       }
@@ -139,9 +162,21 @@ controller.hears(['contributions'], 'direct_message,direct_mention,mention', fun
   });
 });
 
+//OPEN PULL REQUESTS
 controller.hears(['pull request', 'pull requests', 'pulls'], 'direct_message,direct_mention,mention', function (bot, message) {
+  
+  var repository;
+  controller.storage.users.get(message.user,function(err,user) {
+    if (user && user.repository) {
+      repository = user.repository;
+    } else {
+      console.log("oops");
+      repository = repo;
+    }
+  });
+
   var options = {
-    url : "https://api.github.com/repos/mirthfulchuksha/dtbs/pulls",
+    url : "https://api.github.com/repos/" + repository + "/pulls",
     headers : {
       'User-Agent': 'alexmclean'
     }
@@ -151,14 +186,26 @@ controller.hears(['pull request', 'pull requests', 'pulls'], 'direct_message,dir
     if (!error && response.statusCode == 200) {
       var parsedBody = JSON.parse(body);
       
-      bot.reply(message, ":thumbsup: Looks like you have " + parsedBody.length + " open pull requests from " + repo + "!");
+      bot.reply(message, ":thumbsup: Looks like you have " + parsedBody.length + " open pull requests from " + repository + "!");
     }
   });
 });
 
+//GITHUB ISSUES
 controller.hears(['issues', 'waffle'], 'direct_message,direct_mention,mention', function (bot, message) {
+  
+  var repository;
+  controller.storage.users.get(message.user,function(err,user) {
+    if (user && user.repository) {
+      repository = user.repository;
+    } else {
+      console.log("oops");
+      repository = repo;
+    }
+  });
+
   var options = {
-    url : "https://api.github.com/repos/mirthfulchuksha/dtbs/issues",
+    url : "https://api.github.com/repos/" + repository + "/issues",
     headers : {
       'User-Agent': 'alexmclean'
     }
@@ -167,7 +214,7 @@ controller.hears(['issues', 'waffle'], 'direct_message,direct_mention,mention', 
   request(options, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       var parsedBody = JSON.parse(body);
-      var response = ":thumbsup: Looks like you have " + parsedBody.length + " open git issues from " + repo + "!";
+      var response = ":thumbsup: Looks like you have " + parsedBody.length + " open git issues from " + repository + "!";
 
       response += '\n\nHere:\n\n';
       for(var i = 0; i < parsedBody.length; i++){
@@ -186,7 +233,11 @@ controller.hears(['issues', 'waffle'], 'direct_message,direct_mention,mention', 
   });
 });
 
-controller.hears(['call me (.*)'],'direct_message,direct_mention,mention',function(bot,message) {
+/*
+  Naming / identifying
+*/
+
+controller.hears(['call me (.*)'],'direct_message,direct_mention,mention',function (bot,message) {
   var matches = message.text.match(/call me (.*)/i);
   var name = matches[1];
   controller.storage.users.get(message.user,function(err,user) {
@@ -202,7 +253,7 @@ controller.hears(['call me (.*)'],'direct_message,direct_mention,mention',functi
   })
 });
 
-controller.hears(['what is my name','who am i'],'direct_message,direct_mention,mention',function(bot,message) {
+controller.hears(['what is my name','who am i'],'direct_message,direct_mention,mention',function (bot,message) {
 
   controller.storage.users.get(message.user,function(err,user) {
     if (user && user.name) {
@@ -213,10 +264,47 @@ controller.hears(['what is my name','who am i'],'direct_message,direct_mention,m
   })
 });
 
+controller.hears(['my repo is (.*)'],'direct_message,direct_mention,mention',function (bot,message) {
+  var matches = message.text.match(/my repo is (.*)/i);
+  var repository = matches[1];
+  controller.storage.users.get(message.user,function(err,user) {
+    if (!user) {
+      user = {
+        id: message.user,
+      }
+    }
+    user.repository = repository;
+    controller.storage.users.save(user,function(err,id) {
+      bot.reply(message,"Got it. Your Github repo is " + user.repository + " from now on.");
+    })
+  })
+});
+
+controller.hears(['what is my repo','which repo'],'direct_message,direct_mention,mention',function (bot,message) {
+
+  controller.storage.users.get(message.user,function(err,user) {
+    if (user && user.repository) {
+      bot.reply(message,"Your repo is " + user.repository);
+    } else {
+      bot.reply(message,"I don't know yet!");
+    }
+  });
+});
+
+/*
+  //goofy stuff
+*/
 controller.hears(['sexy'], 'direct_message,direct_mention,mention', function (bot, message) {
   bot.reply(message, ":kissing_closed_eyes:");
 });
 
+controller.hears(['who do you work for'], 'direct_message,direct_mention,mention', function (bot, message) {
+  bot.reply(message, "I work for DTBS, better known as 'Down To Be Sexy'!");
+});
+
+/*
+  Bot shutdown and self identification
+*/
 
 controller.hears(['shutdown'],'direct_message,direct_mention,mention',function(bot,message) {
 
